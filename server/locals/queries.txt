@@ -1,0 +1,96 @@
+mutation{
+   createSurvey(data: {
+    topic: "III ankieta testowa"
+  }){
+    id
+    topic
+    questions{
+      content
+      id
+      choices {
+        id
+      }
+    }
+  }
+}
+mutation{
+   addQuestion(surveyId: "5f625d7a0312cc7a6639eca0", data: {
+    content: "IV pytanie w ankiecie testowej"
+    position: 3
+    choices: [
+      {
+        content: "Odpowiedź 1c"
+        position: 1
+      },
+      {
+        content: "Odpowiedź 2c"
+        position: 2
+      },
+      {
+        content: "Odpowiedź 3c"
+        position: 3
+      }
+    ]
+  }){
+    id
+    surveyId
+    authorId
+    content
+    position
+  }
+}
+{
+   survey(id: "5f625d7a0312cc7a6639eca0"){
+    id
+    topic
+    questions{
+      content
+      id
+      choices {
+        id
+      }
+    }
+  }
+}
+{
+   surveys{
+    id
+    topic
+    questions{
+      content
+      id
+      choices {
+        id
+      }
+    }
+  }
+}
+
+{
+   question(id: "5f5e02417050d6a59cb68d1a"){
+    id
+    surveyId
+    content
+    choices{
+      content
+    }
+  }
+}
+{
+    questions {
+      id
+      authorId
+      surveyId
+      content
+      position
+      choices{
+        id
+        content
+        position
+      }
+      createdAt
+      updatedAt
+    }
+    
+  
+}
