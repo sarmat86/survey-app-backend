@@ -90,28 +90,35 @@ module.exports = {
 
   deleteQuestion: async ({ id }, req) => {
     authGuard(req.user);
-    const foundQuestion = await Question.findById(id);
-    if (!foundQuestion) {
-      throwError('No question found!', 404);
+    try {
+      const deleted = await Question.deleteOne({ _id: id, authorId: req.user._id });
+      return {
+        success: deleted.ok === 1 && deleted.n === 1 && deleted.deletedCount === 1,
+        matchedDocuments: deleted.n,
+        deletedCount: deleted.deletedCount,
+      };
+    } catch (err) {
+      throw new Error(err);
     }
-    if (foundQuestion.authorId.toString() !== req.user._id.toString()) {
-      throwError('Not authorized!', 403);
+  },
+
+  deleteQuestions: async ({ questionsId }, req) => {
+    authGuard(req.user);
+    try {
+      const deleted = await Question.deleteMany({
+        _id: {
+          $in: questionsId,
+        },
+        authorId: req.user._id,
+      });
+      return {
+        success: deleted.ok === 1
+        && deleted.n === questionsId.length && deleted.deletedCount === questionsId.length,
+        matchedDocuments: deleted.n,
+        deletedCount: deleted.deletedCount,
+      };
+    } catch (err) {
+      throw new Error(err);
     }
-    const survey = await Survey.findById(foundQuestion.surveyId);
-
-    await foundQuestion.deleteOne().catch((err) => { throw new Error(err); });
-
-    if (!survey) {
-      throwError('Question was deleted, but there is no matching survey.', 404);
-    }
-    const updatedQuestions = survey.questions
-      .filter((question) => question._id.toString() !== id);
-
-    survey.questions = updatedQuestions;
-
-    await survey.save()
-      .catch((err) => { throw new Error(err); });
-
-    return true;
   },
 };
