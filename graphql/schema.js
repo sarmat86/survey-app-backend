@@ -19,10 +19,9 @@ module.exports = buildSchema(`
 
   type Question {
     id: ID!
-    surveyId: ID!
     authorId: ID!
     content: String!
-    position: Int
+    favourite: Boolean
     choices: [Choice!]!
     createdAt: String!
     updatedAt: String!
@@ -30,25 +29,35 @@ module.exports = buildSchema(`
   
   input QuestionInput {
     content: String!
-    position: Int
+    favourite: Boolean
     choices: [ChoiceInput!]!
   }
 
   input QuestionUpdateInput {
     content: String
-    position: Int
+    favourite: Boolean
     choices: [ChoiceInput!]
   }
 
   input SurveyInputData {
     topic: String!
   }
+  type SurveyQuestion{
+    id: ID!
+    authorId: ID!
+    content: String!
+    favourite: Boolean
+    position: Int
+    choices: [Choice!]!
+    createdAt: String!
+    updatedAt: String!
+  }
 
   type Survey {
     id: ID!
     author: User!
     topic: String!
-    questions: [Question!]!
+    questions: [SurveyQuestion!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -76,6 +85,7 @@ module.exports = buildSchema(`
     success: Boolean!
     matchedDocuments: Int!
     deletedCount: Int!
+    updatedSurvey: Int
   }
 
   type Mutation {
@@ -83,8 +93,10 @@ module.exports = buildSchema(`
     updateSurvey(id: ID!, data: SurveyInputData!): Survey!
     deleteSurvey(id: ID!): Boolean
 
-    addQuestion(surveyId: ID!, data: QuestionInput!): Question!
+    
+    createQuestion(surveyId: ID, position: Int, data: QuestionInput!): Question!
     updateQuestion(id: ID!, data: QuestionUpdateInput!): Question!
+    addQuestionToSurvey(id: ID!, surveyId: ID!, position: Int): Boolean!
     deleteQuestion(id: ID!): Deleted!
     deleteQuestions(questionsId: [ID!]!): Deleted!
 
@@ -97,12 +109,11 @@ module.exports = buildSchema(`
     surveys:  [Survey!]!
     survey(id: ID!): Survey!
 
-    questions(surveyId: ID): [Question!]!
+    questions: [Question!]!
     question(id: ID!): Question!
-
+    
     polls: [Poll!]!
     poll(id: ID!): Poll!
-    
   }
 
   schema {

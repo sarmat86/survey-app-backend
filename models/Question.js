@@ -5,18 +5,13 @@ const questionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  surveyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Survey',
-    required: true,
-  },
   authorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  position: {
-    type: Number,
+  favourite: {
+    type: Boolean,
   },
   choices: [
     {

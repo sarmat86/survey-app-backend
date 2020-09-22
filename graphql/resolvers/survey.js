@@ -1,5 +1,4 @@
 const Survey = require('../../models/Survey');
-const Question = require('../../models/Question');
 const { authGuard } = require('../../helpers/auth');
 const { throwError } = require('../../helpers/errorHandlers');
 
@@ -10,28 +9,53 @@ module.exports = {
     const surveys = await Survey.find({ author: req.user })
       .sort({ createdAt: -1 })
       .populate('author')
-      .populate('questions');
+      .populate({
+        path: 'questions',
+        populate: {
+          path: 'question',
+          model: 'Question',
+        },
+      });
     if (!surveys) {
       throwError('No surveys found!', 404);
     }
-    return surveys.map((survey) => ({
+
+    const toReturn = surveys.map((survey) => ({
       ...survey._doc,
       id: survey._doc._id,
+      questions: survey.questions.map((item) => ({
+        ...item.question._doc,
+        id: item.question._doc._id,
+        position: item.position,
+      })),
       createdAt: survey.createdAt.toISOString(),
       updatedAt: survey.updatedAt.toISOString(),
     }));
+    return toReturn;
   },
 
   survey: async ({ id }, req) => {
-    const survey = await Survey.findOne({ _id: id })
+    authGuard(req.user);
+    const survey = await Survey.findOne({ _id: id, author: req.user })
       .populate('author')
-      .populate('questions');
+      .populate({
+        path: 'questions',
+        populate: {
+          path: 'question',
+          model: 'Question',
+        },
+      });
     if (!survey) {
       throwError('No surveys found!', 404);
     }
     return {
       ...survey._doc,
       id: survey._doc._id,
+      questions: survey.questions.map((item) => ({
+        ...item.question._doc,
+        id: item.question._doc._id,
+        position: item.position,
+      })),
       createdAt: survey.createdAt.toISOString(),
       updatedAt: survey.updatedAt.toISOString(),
     };

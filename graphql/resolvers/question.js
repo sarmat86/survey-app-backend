@@ -5,14 +5,9 @@ const { throwError } = require('../../helpers/errorHandlers');
 
 module.exports = {
 
-  questions: async ({ surveyId }, req) => {
+  questions: async (_, req) => {
     authGuard(req.user);
-    const query = {};
-    query.authorId = req.user._id;
-    if (surveyId) {
-      query.surveyId = surveyId;
-    }
-    const questions = await Question.find(query);
+    const questions = await Question.find({ authorId: req.user._id });
     if (!questions) {
       throwError('No surveys found!', 404);
     }
@@ -37,23 +32,48 @@ module.exports = {
       updatedAt: question.updatedAt.toISOString(),
     };
   },
-  addQuestion: async ({ surveyId, data }, req) => {
+  addQuestionToSurvey: async ({ id, surveyId, position }, req) => {
     authGuard(req.user);
-    const survey = await Survey.findById(surveyId);
+    const survey = await Survey.findOne({ _id: surveyId, author: req.user });
     if (!survey) {
       throwError('No survey found!', 404);
     }
-    const { content, position, choices } = data;
+    const question = await Question.findOne({ _id: id, authorId: req.user._id });
+    if (!question) {
+      throwError('No question found!', 404);
+    }
+    survey.questions.push({
+      question,
+      position,
+    });
+    await survey.save();
+    return true;
+  },
+  createQuestion: async ({ surveyId, position, data }, req) => {
+    authGuard(req.user);
+    let survey = null;
+    if (surveyId) {
+      survey = await Survey.findById(surveyId);
+      if (!survey) {
+        throwError('No survey found!', 404);
+      }
+    }
+    const { content, favourite, choices } = data;
     const newQuestion = new Question({
       content,
-      position,
+      favourite: !!favourite,
       choices,
-      surveyId: survey._id,
       authorId: req.user._id,
     });
     const createdQuestion = await newQuestion.save();
-    survey.questions.push(createdQuestion._id);
-    await survey.save();
+
+    if (survey) {
+      survey.questions.push({
+        question: createdQuestion,
+        position,
+      });
+      await survey.save();
+    }
     return {
       ...createdQuestion._doc,
       id: createdQuestion._id,
@@ -64,16 +84,17 @@ module.exports = {
 
   updateQuestion: async ({ id, data }, req) => {
     authGuard(req.user);
+
     const foundQuestion = await Question.findOne({ _id: id, authorId: req.user._id });
     if (!foundQuestion) {
       throwError('No question found!', 404);
     }
-    const { content, position, choices } = data;
+    const { content, favourite, choices } = data;
     if (content) {
       foundQuestion.content = content;
     }
-    if (position) {
-      foundQuestion.position = position;
+    if (favourite) {
+      foundQuestion.favourite = favourite;
     }
     if (choices) {
       foundQuestion.choices = choices;
@@ -90,35 +111,33 @@ module.exports = {
 
   deleteQuestion: async ({ id }, req) => {
     authGuard(req.user);
-    try {
-      const deleted = await Question.deleteOne({ _id: id, authorId: req.user._id });
-      return {
-        success: deleted.ok === 1 && deleted.n === 1 && deleted.deletedCount === 1,
-        matchedDocuments: deleted.n,
-        deletedCount: deleted.deletedCount,
-      };
-    } catch (err) {
-      throw new Error(err);
-    }
+    const surveys = await Survey.updateMany({ 'questions.question': id, author: req.user },
+      { $pull: { questions: { question: id } } });
+    const deleted = await Question.deleteOne({ _id: id, authorId: req.user._id });
+    return {
+      success: deleted.ok === 1 && deleted.n === 1 && deleted.deletedCount === 1,
+      matchedDocuments: deleted.n,
+      deletedCount: deleted.deletedCount,
+      updatedSurvey: surveys.n,
+    };
   },
 
   deleteQuestions: async ({ questionsId }, req) => {
     authGuard(req.user);
-    try {
-      const deleted = await Question.deleteMany({
-        _id: {
-          $in: questionsId,
-        },
-        authorId: req.user._id,
-      });
-      return {
-        success: deleted.ok === 1
+    const surveys = await Survey.updateMany({ 'questions.question': { $in: questionsId }, author: req.user },
+      { $pull: { questions: { question: { $in: questionsId } } } });
+    const deleted = await Question.deleteMany({
+      _id: {
+        $in: questionsId,
+      },
+      authorId: req.user._id,
+    });
+    return {
+      success: deleted.ok === 1
         && deleted.n === questionsId.length && deleted.deletedCount === questionsId.length,
-        matchedDocuments: deleted.n,
-        deletedCount: deleted.deletedCount,
-      };
-    } catch (err) {
-      throw new Error(err);
-    }
+      matchedDocuments: deleted.n,
+      deletedCount: deleted.deletedCount,
+      updatedSurvey: surveys.n,
+    };
   },
 };
