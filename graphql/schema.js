@@ -96,7 +96,8 @@ module.exports = buildSchema(`
   type Mutation {
     createSurvey(data: SurveyInputData!): Survey!
     updateSurvey(id: ID!, data: SurveyInputData!): Survey!
-    deleteSurvey(id: ID!): DeletedSurvey!
+    deleteSurvey(id: ID!): DeletedSurvey
+    updateQuestionPos(surveyId: ID!, questionId: ID!, position: Int!): Boolean
 
     
     createQuestion(surveyId: ID, position: Int, data: QuestionInput!): Question!

@@ -105,4 +105,19 @@ module.exports = {
     };
   },
 
+  updateQuestionPos: async ({ surveyId, questionId, position }, req) => {
+    authGuard(req.user);
+    const survey = await Survey.findOne({ _id: surveyId, author: req.user });
+    if (!survey) {
+      throwError('No surveys found!', 404);
+    }
+    const i = survey.questions.findIndex((item) => item.question.toString() === questionId);
+    if (i !== -1) {
+      survey.questions[i].position = position;
+      await survey.save();
+      return true;
+    }
+    return false;
+  },
+
 };
