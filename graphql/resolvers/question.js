@@ -140,4 +140,25 @@ module.exports = {
       updatedSurvey: surveys.n,
     };
   },
+  updateChoice: async ({
+    questionId, choiceId, content, position,
+  }, req) => {
+    authGuard(req.user);
+    const question = await Question.findById({ _id: questionId, authorId: req.user._id });
+    if (!question) {
+      throwError('No question found!', 404);
+    }
+    const i = question.choices.findIndex((choice) => choice.id.toString() === choiceId);
+    if (i !== -1 && (content || position)) {
+      if (position) {
+        question.choices[i].position = position;
+      }
+      if (content) {
+        question.choices[i].content = content;
+      }
+      await question.save();
+      return true;
+    }
+    return false;
+  },
 };

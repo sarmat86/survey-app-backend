@@ -99,12 +99,12 @@ module.exports = buildSchema(`
     deleteSurvey(id: ID!): DeletedSurvey
     updateQuestionPos(surveyId: ID!, questionId: ID!, position: Int!): Boolean
 
-    
     createQuestion(surveyId: ID, position: Int, data: QuestionInput!): Question!
     updateQuestion(id: ID!, data: QuestionUpdateInput!): Question!
     addQuestionToSurvey(id: ID!, surveyId: ID!, position: Int): Boolean!
     deleteQuestion(id: ID!): DeletedQuestion!
     deleteQuestions(questionsId: [ID!]!): DeletedQuestion!
+    updateChoice(questionId: ID!, choiceId: ID!, content: String, position: Int): Boolean!
 
     createPoll(surveyId: ID!, data: PollInput!): Poll!
     updatePollAnswers(id: ID!, answers: [AnswerInput]!): Poll!
