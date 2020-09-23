@@ -181,7 +181,7 @@ app.use('/graphql', graphqlHTTP.graphqlHTTP({
   schema,
   rootValue: resolvers,
   graphiql: process.env.NODE_ENV === 'dev',
-  formatError(err) {
+  customFormatErrorFn(err) {
     if (!err.originalError) {
       return err;
     }

@@ -97,16 +97,12 @@ module.exports = {
 
   deleteSurvey: async ({ id }, req) => {
     authGuard(req.user);
-    const survey = await Survey.findOne({ _id: id, author: req.user });
-    if (!survey) {
-      throwError('No survey found!', 404);
-    }
-    if (survey.author._id.toString() !== req.user._id.toString()) {
-      throwError('Not authorized!', 403);
-    }
-    await survey.deleteOne()
-      .catch((err) => { throw new Error(err); });
-    return true;
+    const survey = await Survey.deleteOne({ _id: id, author: req.user });
+    return {
+      success: survey.ok === 1 && survey.n === 1 && survey.deletedCount === 1,
+      matchedDocuments: survey.n,
+      deletedCount: survey.deletedCount,
+    };
   },
 
 };

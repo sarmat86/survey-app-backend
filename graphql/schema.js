@@ -81,24 +81,29 @@ module.exports = buildSchema(`
     createdAt: String!
     updatedAt: String! 
   }
-  type Deleted {
+  type DeletedQuestion {
     success: Boolean!
     matchedDocuments: Int!
     deletedCount: Int!
     updatedSurvey: Int
   }
+  type DeletedSurvey {
+    success: Boolean!
+    matchedDocuments: Int!
+    deletedCount: Int!
+  }
 
   type Mutation {
     createSurvey(data: SurveyInputData!): Survey!
     updateSurvey(id: ID!, data: SurveyInputData!): Survey!
-    deleteSurvey(id: ID!): Boolean
+    deleteSurvey(id: ID!): DeletedSurvey!
 
     
     createQuestion(surveyId: ID, position: Int, data: QuestionInput!): Question!
     updateQuestion(id: ID!, data: QuestionUpdateInput!): Question!
     addQuestionToSurvey(id: ID!, surveyId: ID!, position: Int): Boolean!
-    deleteQuestion(id: ID!): Deleted!
-    deleteQuestions(questionsId: [ID!]!): Deleted!
+    deleteQuestion(id: ID!): DeletedQuestion!
+    deleteQuestions(questionsId: [ID!]!): DeletedQuestion!
 
     createPoll(surveyId: ID!, data: PollInput!): Poll!
     updatePollAnswers(id: ID!, answers: [AnswerInput]!): Poll!
