@@ -10,11 +10,18 @@ const surveySchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  questions: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Question',
-    required: true,
-  }],
+  questions: [
+    {
+      position: {
+        type: Number,
+      },
+      question: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Question',
+        required: true,
+      },
+    },
+  ],
 }, { timestamps: true });
 
 const Survey = mongoose.model('Survey', surveySchema);

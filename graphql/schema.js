@@ -19,10 +19,9 @@ module.exports = buildSchema(`
 
   type Question {
     id: ID!
-    surveyId: ID!
     authorId: ID!
     content: String!
-    position: Int
+    favourite: Boolean
     choices: [Choice!]!
     createdAt: String!
     updatedAt: String!
@@ -30,25 +29,35 @@ module.exports = buildSchema(`
   
   input QuestionInput {
     content: String!
-    position: Int
+    favourite: Boolean
     choices: [ChoiceInput!]!
   }
 
   input QuestionUpdateInput {
     content: String
-    position: Int
+    favourite: Boolean
     choices: [ChoiceInput!]
   }
 
   input SurveyInputData {
     topic: String!
   }
+  type SurveyQuestion{
+    id: ID!
+    authorId: ID!
+    content: String!
+    favourite: Boolean
+    position: Int
+    choices: [Choice!]!
+    createdAt: String!
+    updatedAt: String!
+  }
 
   type Survey {
     id: ID!
     author: User!
     topic: String!
-    questions: [Question!]!
+    questions: [SurveyQuestion!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -72,15 +81,30 @@ module.exports = buildSchema(`
     createdAt: String!
     updatedAt: String! 
   }
+  type DeletedQuestion {
+    success: Boolean!
+    matchedDocuments: Int!
+    deletedCount: Int!
+    updatedSurvey: Int
+  }
+  type DeletedSurvey {
+    success: Boolean!
+    matchedDocuments: Int!
+    deletedCount: Int!
+  }
 
   type Mutation {
     createSurvey(data: SurveyInputData!): Survey!
     updateSurvey(id: ID!, data: SurveyInputData!): Survey!
-    deleteSurvey(id: ID!): Boolean
+    deleteSurvey(id: ID!): DeletedSurvey
+    updateQuestionPos(surveyId: ID!, questionId: ID!, position: Int!): Boolean
 
-    addQuestion(surveyId: ID!, data: QuestionInput!): Question!
+    createQuestion(surveyId: ID, position: Int, data: QuestionInput!): Question!
     updateQuestion(id: ID!, data: QuestionUpdateInput!): Question!
-    deleteQuestion(id: ID!): Boolean!
+    addQuestionToSurvey(id: ID!, surveyId: ID!, position: Int): Boolean!
+    deleteQuestion(id: ID!): DeletedQuestion!
+    deleteQuestions(questionsId: [ID!]!): DeletedQuestion!
+    updateChoice(questionId: ID!, choiceId: ID!, content: String, position: Int): Boolean!
 
     createPoll(surveyId: ID!, data: PollInput!): Poll!
     updatePollAnswers(id: ID!, answers: [AnswerInput]!): Poll!
@@ -91,12 +115,11 @@ module.exports = buildSchema(`
     surveys:  [Survey!]!
     survey(id: ID!): Survey!
 
-    questions(surveyId: ID): [Question!]!
+    questions: [Question!]!
     question(id: ID!): Question!
-
+    
     polls: [Poll!]!
     poll(id: ID!): Poll!
-    
   }
 
   schema {
