@@ -1,4 +1,5 @@
 const Survey = require('../../models/Survey');
+const Question = require('../../models/Question');
 const { authGuard } = require('../../helpers/auth');
 const { throwError } = require('../../helpers/errorHandlers');
 
@@ -114,8 +115,17 @@ module.exports = {
     const i = survey.questions.findIndex((item) => item.question.toString() === questionId);
     if (i !== -1) {
       survey.questions[i].position = position;
-      await survey.save();
-      return true;
+      const updatedSurvey = await survey.save();
+      const question = await Question.findById({ _id: questionId });
+      const newPosition = updatedSurvey
+        .questions.find((q) => q.question.toString() === questionId).position;
+      return {
+        ...question._doc,
+        id: question._doc._id,
+        createdAt: question.createdAt.toISOString(),
+        updatedAt: question.updatedAt.toISOString(),
+        position: newPosition || null,
+      };
     }
     return false;
   },
