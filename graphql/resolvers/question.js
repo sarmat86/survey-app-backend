@@ -161,4 +161,10 @@ module.exports = {
     }
     return false;
   },
+  deleteChoice: async ({ choiceId }, req) => {
+    authGuard(req.user);
+    const updatedQuestion = await Question.updateOne({ 'choices._id': choiceId, authorId: req.user._id },
+      { $pull: { choices: { _id: choiceId } } });
+    return updatedQuestion.ok === 1 && updatedQuestion.n === 1;
+  },
 };
