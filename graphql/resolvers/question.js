@@ -140,11 +140,22 @@ module.exports = {
       updatedSurvey: surveys.n,
     };
   },
-  updateChoice: async ({
-    questionId, choiceId, content, position,
-  }, req) => {
+  createChoice: async ({ questionId, content, position }, req) => {
     authGuard(req.user);
-    const question = await Question.findById({ _id: questionId, authorId: req.user._id });
+    const question = await Question.findOne({ _id: questionId, authorId: req.user._id });
+    if (!question) {
+      throwError('No question found!', 404);
+    }
+    question.choices.push({
+      content,
+      position,
+    });
+    const savedQuestion = await question.save();
+    return savedQuestion.choices[savedQuestion.choices.length - 1];
+  },
+  updateChoice: async ({ choiceId, content, position }, req) => {
+    authGuard(req.user);
+    const question = await Question.findOne({ 'choices._id': choiceId, authorId: req.user._id });
     if (!question) {
       throwError('No question found!', 404);
     }
@@ -157,9 +168,9 @@ module.exports = {
         question.choices[i].content = content;
       }
       await question.save();
-      return true;
+      return question.choices[i];
     }
-    return false;
+    throwError('Choice not found!', 404);
   },
   deleteChoice: async ({ choiceId }, req) => {
     authGuard(req.user);
