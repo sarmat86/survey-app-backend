@@ -104,7 +104,8 @@ module.exports = buildSchema(`
     addQuestionToSurvey(id: ID!, surveyId: ID!, position: Int): Boolean!
     deleteQuestion(id: ID!): DeletedQuestion!
     deleteQuestions(questionsId: [ID!]!): DeletedQuestion!
-    updateChoice(questionId: ID!, choiceId: ID!, content: String, position: Int): Boolean!
+    createChoice(questionId: ID!, content: String!, position: Int): Choice!
+    updateChoice(choiceId: ID!, content: String, position: Int): Choice!
     deleteChoice(choiceId: ID!): Boolean!
 
     createPoll(surveyId: ID!, data: PollInput!): Poll!
